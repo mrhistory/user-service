@@ -6,15 +6,18 @@ describe 'User Service' do
     User.delete_all
   end
 
-  it 'should return status 200' do
-    get '/'
-    expect(last_response).to be_ok
+  it 'should return a list of users' do
+    user1 = create(:user, email: 'user1@fake.com')
+    user2 = create(:user, email: 'user2@fake.com')
+    get '/.json'
+    last_response.body.should include(user1.email)
+    last_response.body.should include(user2.email)
   end
 
   it 'should verify a user is not logged in' do
     user = create(:user, email: 'not_logged_in@fake.com')
     expected = { :id => user.id, :logged_in => false }.to_json
-    get "/logged_in/#{user.id}"
+    get "/logged_in/#{user.id}.json"
     last_response.body.should == expected
     user.delete
   end
@@ -22,7 +25,7 @@ describe 'User Service' do
   it 'should verify a user is logged in' do
     user = create(:user, logged_in: true, email: 'logged_in@fake.com')
     expected = { :id => user.id, :logged_in => true }.to_json
-    get "/logged_in/#{user.id}"
+    get "/logged_in/#{user.id}.json"
     last_response.body.should == expected
     user.delete
   end
@@ -33,8 +36,8 @@ describe 'User Service' do
       :password => 'fakePW',
       :password_confirmation => 'fakePW'
     }
-    post '/', :user => user.to_json
-    last_response.body.should include(user[:email])
+    post '/.json', user.to_json
+    last_response.body.should include('bla')
     User.where(email: user[:email]).nil?.should eq(false)
   end
 end

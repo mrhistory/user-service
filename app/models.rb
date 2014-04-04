@@ -23,6 +23,7 @@ class User
   validates_uniqueness_of :email
   validates_format_of :email, :with => /^[-a-z0-9_+\.]+\@([-a-z0-9]+\.)+[a-z0-9]{2,4}$/i
   validate :check_password
+  validate :check_organizations
 
   def check_password
     if self.new_record?
@@ -37,6 +38,10 @@ class User
         errors.add(:base, "Password must be at least 4 chars long") if self.password.to_s.size.to_i < 4
       end
     end
+  end
+
+  def check_organizations
+    errors.add(:base, "Organizations cannot be empty.") if self.organizations.nil?
   end
 
   def self.authenticate(login, pass)
