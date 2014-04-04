@@ -34,10 +34,11 @@ describe 'User Service' do
     user = {
       :email => 'new_user@fake.com',
       :password => 'fakePW',
-      :password_confirmation => 'fakePW'
+      :password_confirmation => 'fakePW',
+      :organizations => [1]
     }
     post '/.json', user.to_json
-    last_response.body.should include('bla')
+    last_response.body.should include(user[:email])
     User.where(email: user[:email]).nil?.should eq(false)
   end
 end

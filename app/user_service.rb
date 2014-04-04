@@ -12,7 +12,12 @@ end
 
 post '/.json' do
   params = JSON.parse(request.env["rack.input"].read)
-  User.create(params).to_json
+  user = User.new(params)
+  if user.save
+    user.to_json(:except => [:password_hash, :password_salt])
+  else
+    user.errors.to_json
+  end
 end
 
 get '/logged_in/:id.json' do
