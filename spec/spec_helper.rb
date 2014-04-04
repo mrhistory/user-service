@@ -2,9 +2,12 @@ ENV['RACK_ENV'] = 'test'
 
 require 'rspec'
 require 'rack/test'
+require 'factory_girl'
+require 'factories'
 
-RSpec.configure do |conf|
-  conf.include Rack::Test::Methods
+RSpec.configure do |config|
+  config.include Rack::Test::Methods
+  config.include FactoryGirl::Syntax::Methods
 end
 
 def app
