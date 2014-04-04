@@ -2,7 +2,7 @@ require 'spec_helper'
 require './app/user_service'
 
 describe 'User Service' do
-  after(:all) do
+  after(:each) do
     User.delete_all
   end
 
@@ -18,7 +18,7 @@ describe 'User Service' do
     user = create(:user, email: 'not_logged_in@fake.com')
     expected = { :id => user.id, :logged_in => false }.to_json
     get "/logged_in/#{user.id}.json"
-    last_response.body.should == expected
+    last_response.body.should eq(expected)
     user.delete
   end
 
@@ -26,7 +26,7 @@ describe 'User Service' do
     user = create(:user, logged_in: true, email: 'logged_in@fake.com')
     expected = { :id => user.id, :logged_in => true }.to_json
     get "/logged_in/#{user.id}.json"
-    last_response.body.should == expected
+    last_response.body.should eq(expected)
     user.delete
   end
 
@@ -39,6 +39,17 @@ describe 'User Service' do
     }
     post '/.json', user.to_json
     last_response.body.should include(user[:email])
-    User.where(email: user[:email]).nil?.should eq(false)
+    User.where(email: user[:email]).exists?.should eq(true)
+  end
+
+  it 'should return an error on User creation' do
+    user = {
+      :email => 'new_user@fake.com',
+      :password => 'fakePW',
+      :password_confirmation => 'fakePW'
+    }
+    post '/.json', user.to_json
+    last_response.body.should include('Organizations cannot be empty.')
+    User.where(email: user[:email]).exists?.should eq(false)
   end
 end
