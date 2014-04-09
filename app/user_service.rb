@@ -6,15 +6,36 @@ require './app/models'
 
 Mongoid.load!('./config/mongoid.yml')
 
-get '/.json' do
+get '/users/.json' do
   User.all.to_json
 end
 
-post '/.json' do
-  params = JSON.parse(request.env["rack.input"].read)
-  user = User.new(params)
+post '/users/.json' do
+  user = User.new(json_params)
   if user.save
-    user.to_json(:except => [:password_hash, :password_salt])
+    user.safe_json
+  else
+    user.errors.to_json
+  end
+end
+
+get '/users/:id.json' do
+  User.find(params[:id]).safe_json
+end
+
+put '/users/:id.json' do
+  user = User.find(params[:id])
+  if user.update_attributes!(json_params)
+    user.safe_json
+  else
+    user.errors.to_json
+  end
+end
+
+delete '/users/:id.json' do
+  user = User.find(params[:id])
+  if user.destroy
+    { :id => user.id, :deleted => true }.to_json
   else
     user.errors.to_json
   end
@@ -23,4 +44,19 @@ end
 get '/logged_in/:id.json' do
   user = User.find(params[:id])
   { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
+end
+
+put '/login/.json' do
+  user = User.authenticate(json_params[:email], json_params[:password])
+  if user.nil?
+    { :error => 'Invalid email or password.' }.to_json
+  else
+    user.safe_json
+  end
+end
+
+private
+
+def json_params
+  JSON.parse(request.env['rack.input'].read)
 end
