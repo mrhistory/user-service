@@ -47,7 +47,8 @@ get '/logged_in/:id.json' do
 end
 
 put '/login/.json' do
-  user = User.authenticate(json_params[:email], json_params[:password])
+  params = json_params
+  user = User.authenticate(params[:email], params[:password])
   if user.nil?
     { :error => 'Invalid email or password.' }.to_json
   else
