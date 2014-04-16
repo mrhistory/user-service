@@ -48,16 +48,29 @@ end
 
 put '/login/.json' do
   params = json_params
-  user = User.authenticate(params['email'], params['password'])
+  user = User.authenticate(params['email'], params['password'], params['remember_me'] ||= false)
   if user.nil?
     { :error => 'Invalid email or password.' }.to_json
   else
-    user.logged_in = true
-    if user.save!
-      user.safe_json
-    else
-      user.errors.to_json
-    end
+    user.safe_json
+  end
+end
+
+get '/remember_me/:token.json' do
+  user = User.where(:remember_me_token => params[:token]).first
+  if user.nil?
+    { :error => 'No user associated with token.' }.to_json
+  else
+    user.safe_json
+  end
+end
+
+put '/logout/:id.json' do
+  user = User.find(params[:id])
+  if user.logout!
+    { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
+  else
+    user.errors.to_json
   end
 end
 

@@ -20,8 +20,7 @@ class User
   field :state
   field :zipcode
   field :phone_number
-  field :reset_token
-  field :activation_token
+  field :remember_me_token
   field :logged_in, type: Boolean, default: false
 
   before_save :prepare_password
@@ -56,9 +55,14 @@ class User
     errors.add(:base, "Organizations cannot be empty.") if self.organizations.nil?
   end
 
-  def self.authenticate(login, pass)
+  def self.authenticate(login, pass, remember_me)
     user = where(:email => login).first
-    return user if user && user.matching_password?(pass)
+    if user && user.matching_password?(pass)
+      user.logged_in = true
+      user.remember_me_token = self.make_token if remember_me
+      user.save!
+      return user
+    end
   end
 
   def matching_password?(pass)
@@ -67,6 +71,12 @@ class User
 
   def safe_json
     self.to_json(:except => [:password_hash, :password_salt])
+  end
+
+  def logout!
+    self.logged_in = false
+    self.remember_me_token = nil
+    save!
   end
 
 
@@ -81,5 +91,13 @@ class User
   
   def encrypt_password(pass)
     Digest::SHA1.hexdigest([pass, password_salt].join)
+  end
+
+  def self.secure_digest(*args)
+    Digest::SHA1.hexdigest(args.flatten.join('--'))
+  end
+ 
+  def self.make_token
+    secure_digest(Time.now, (1..10).map{ rand.to_s })
   end
 end

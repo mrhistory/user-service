@@ -84,4 +84,44 @@ describe 'User Service' do
     put '/login/.json', { :email => user.email, :password => 'BADfakePW' }.to_json
     last_response.body.should include('Invalid email or password.')
   end
+
+  it 'should login a user and remember the user' do
+    user = create(:user, email: 'remember_me@fake.com')
+    put '/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => true }.to_json
+    last_response.body.should include(user.email)
+    User.find(user.id).logged_in.should eq(true)
+    User.find(user.id).remember_me_token.nil?.should eq(false)
+  end
+
+  it 'should login a user and not remember the user' do
+    user = create(:user, email: 'dont_remember_me@fake.com')
+    put '/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => false }.to_json
+    last_response.body.should include(user.email)
+    User.find(user.id).logged_in.should eq(true)
+    User.find(user.id).remember_me_token.nil?.should eq(true)
+  end
+
+  it 'should return the user associated with the token' do
+    user = create(:user, email: 'dont_remember_me@fake.com')
+    put '/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => true }.to_json
+    last_response.body.should include(user.email)
+    
+    get "/remember_me/#{User.find(user.id).remember_me_token}.json"
+    last_response.body.should include(user.email)
+    User.find(user.id).logged_in.should eq(true)
+  end
+
+  it 'should log out a user' do
+    user = create(:user, email: 'remember_me@fake.com')
+    put '/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => true }.to_json
+    last_response.body.should include(user.email)
+    User.find(user.id).logged_in.should eq(true)
+    User.find(user.id).remember_me_token.nil?.should eq(false)
+    
+    put "/logout/#{user.id}.json"
+    expected = { :id => user.id, :logged_in => false }.to_json
+    last_response.body.should eq(expected)
+    User.find(user.id).logged_in.should eq(false)
+    User.find(user.id).remember_me_token.nil?.should eq(true)
+  end
 end
