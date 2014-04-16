@@ -57,7 +57,7 @@ class User
   end
 
   def self.authenticate(login, pass)
-    user = where(:conditions => {:email => login}).first
+    user = where(:email => login).first
     return user if user && user.matching_password?(pass)
   end
 

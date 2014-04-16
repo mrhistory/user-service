@@ -48,11 +48,16 @@ end
 
 put '/login/.json' do
   params = json_params
-  user = User.authenticate(params[:email], params[:password])
+  user = User.authenticate(params['email'], params['password'])
   if user.nil?
     { :error => 'Invalid email or password.' }.to_json
   else
-    user.safe_json
+    user.logged_in = true
+    if user.save!
+      user.safe_json
+    else
+      user.errors.to_json
+    end
   end
 end
 
