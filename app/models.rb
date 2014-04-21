@@ -22,7 +22,11 @@ class User
   field :phone_number
   field :remember_me_token
   field :logged_in, type: Boolean, default: false
+  field :active, type: Boolean, default: false
+  field :activation_code
+  field :activated_at, type: Time
 
+  before_create :make_activation_code
   before_save :prepare_password
   
   validates_presence_of :email
@@ -77,6 +81,25 @@ class User
     self.logged_in = false
     self.remember_me_token = nil
     save!
+  end
+
+  def activate!
+    self.active = true
+    self.activated_at = Time.now.utc
+    self.activation_code = nil
+    self.logged_in = true
+    save!
+  end
+
+  def active?
+    self.active
+  end
+
+
+  protected
+
+  def make_activation_code
+    self.activation_code = self.class.make_token
   end
 
 

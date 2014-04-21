@@ -51,6 +51,8 @@ put '/login/.json' do
   user = User.authenticate(params['email'], params['password'], params['remember_me'] ||= false)
   if user.nil?
     { :error => 'Invalid email or password.' }.to_json
+  elsif !user.active?
+    { :error => 'User is inactive.' }.to_json
   else
     user.safe_json
   end
@@ -71,6 +73,19 @@ put '/logout/:id.json' do
     { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
   else
     user.errors.to_json
+  end
+end
+
+put '/activate/:code.json' do
+  user = User.where(:activation_code => params[:code]).first
+  if user.nil?
+    { :error => 'No user associated with that activation code.' }.to_json
+  else
+    if user.activate!
+      user.safe_json
+    else
+      user.errors.to_json
+    end
   end
 end
 
