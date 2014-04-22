@@ -25,6 +25,7 @@ class User
   field :active, type: Boolean, default: false
   field :activation_code
   field :activated_at, type: Time
+  field :reset_token
 
   before_create :make_activation_code
   before_save :prepare_password
@@ -93,6 +94,10 @@ class User
 
   def active?
     self.active
+  end
+
+  def make_reset_token
+    self.reset_token = self.class.make_token
   end
 
 

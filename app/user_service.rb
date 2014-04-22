@@ -89,6 +89,39 @@ put '/activate/:code.json' do
   end
 end
 
+post '/reset_password/.json' do
+  params = json_params
+  user = User.where(:email => params['email']).first
+  if user.nil?
+    { :error => 'No user associated with that email address.' }.to_json
+  else
+    user.make_reset_token
+    if user.save!
+      { :reset_token => user.reset_token }.to_json
+    else
+      user.errors.to_json
+    end
+  end
+end
+
+put '/reset_password/.json' do
+  params = json_params
+  user = User.where(:reset_token => params['reset_token']).first
+  if user.nil?
+    { :error => 'No user associated with that reset token.' }.to_json
+  else
+    user.password = params['password']
+    user.password_confirmation = params['password_confirmation']
+    user.reset_token = nil
+    user.logged_in = true
+    if user.save!
+      user.safe_json
+    else
+      user.errors.to_json
+    end
+  end
+end
+
 private
 
 def json_params

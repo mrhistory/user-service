@@ -9,7 +9,7 @@ describe 'User Service' do
   it 'should return a list of users' do
     user1 = create(:user, email: 'user1@fake.com')
     user2 = create(:user, email: 'user2@fake.com')
-    get '/users/.json'
+    get '/users/.json', { :organizations => [1] }.to_json
     last_response.body.should include(user1.email)
     last_response.body.should include(user2.email)
   end
@@ -131,5 +131,26 @@ describe 'User Service' do
     last_response.body.should include(user.email)
     User.find(user.id).active.should eq(true)
     User.find(user.id).logged_in.should eq(true)
+  end
+
+  it 'should return a reset password token' do
+    user = create(:user, email: 'reset_token@fake.com')
+    post '/reset_password/.json', { :email => user.email }.to_json
+    last_response.body.should include('reset_token')
+    User.find(user.id).reset_token.nil?.should eq(false)
+  end
+
+  it 'should return the user' do
+    user = create(:user, email: 'reset_pw@fake.com')
+    post '/reset_password/.json', { :email => user.email }.to_json
+
+    put '/reset_password/.json', {
+                                  :reset_token => User.find(user.id).reset_token,
+                                  :password => 'newPW',
+                                  :password_confirmation => 'newPW'
+                                }.to_json
+    last_response.body.should include(user.email)
+    User.find(user.id).logged_in.should eq(true)
+    User.find(user.id).reset_token.nil?.should eq(true)
   end
 end
