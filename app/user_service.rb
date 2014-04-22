@@ -6,12 +6,20 @@ require './app/models'
 
 Mongoid.load!('./config/mongoid.yml')
 
-get '/' do
-  'Welcome to the User Service!'
+before do
+  content_type :json
+  ssl_whitelist = ['/calendar.ics']
+  if settings.force_ssl && !request.secure? && !ssl_whitelist.include?(request.path_info)
+    halt json_status 400, "Please use SSL at https://#{settings.host}"
+  end
 end
 
 use Rack::Auth::Basic, "Restricted Area" do |username, password|
   username == 'web_service_user' and password == 'catbrowncowjumps'
+end
+
+get '/' do
+  'Welcome to the User Service!'
 end
 
 get '/users/.json' do
