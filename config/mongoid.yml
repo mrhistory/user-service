@@ -17,4 +17,4 @@ production:
     default:
       database: user_service_prod
       hosts:
-        - localhost:27017
+        - mongodb://user_service:pathcrossingblackcat@oceanic.mongohq.com:10088/app24430662
