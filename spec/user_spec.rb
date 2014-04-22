@@ -2,6 +2,10 @@ require 'spec_helper'
 require './app/user_service'
 
 describe 'User Service' do
+  before(:each) do
+    authorize 'web_service_user', 'catbrowncowjumps'
+  end
+  
   after(:each) do
     User.delete_all
   end
