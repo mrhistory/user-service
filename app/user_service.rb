@@ -10,7 +10,7 @@ before do
   content_type :json
   ssl_whitelist = ['/calendar.ics']
   if settings.force_ssl && !request.secure? && !ssl_whitelist.include?(request.path_info)
-    halt json_status 400, "Please use SSL at https://#{settings.host}"
+    halt 400, "Please use SSL at https://#{settings.host}"
   end
 end
 
