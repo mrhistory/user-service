@@ -15,6 +15,8 @@ test:
 production:
   sessions:
     default:
-      database: user_service_prod
       hosts:
-        - mongodb://user_service:pathcrossingblackcat@oceanic.mongohq.com:10088/app24430662
+        - oceanic.mongohq.com:10088
+      database: app24430662
+      username: user_service
+      password: pathcrossingblackcat
