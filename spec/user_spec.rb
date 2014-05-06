@@ -21,14 +21,14 @@ describe 'User Service' do
   it 'should verify a user is not logged in' do
     user = create(:user, email: 'not_logged_in@fake.com')
     expected = { :id => user.id, :logged_in => false }.to_json
-    get "/logged_in/#{user.id}.json"
+    get "/users/logged_in/#{user.id}.json"
     last_response.body.should eq(expected)
   end
 
   it 'should verify a user is logged in' do
     user = create(:user, logged_in: true, email: 'logged_in@fake.com')
     expected = { :id => user.id, :logged_in => true }.to_json
-    get "/logged_in/#{user.id}.json"
+    get "/users/logged_in/#{user.id}.json"
     last_response.body.should eq(expected)
   end
 
@@ -78,20 +78,20 @@ describe 'User Service' do
 
   it 'should login a user' do
     user = create(:user, email: 'login@fake.com')
-    put '/login/.json', { :email => user.email, :password => 'fakePW' }.to_json
+    put '/users/login/.json', { :email => user.email, :password => 'fakePW' }.to_json
     last_response.body.should include(user.email)
     User.find(user.id).logged_in.should eq(true)
   end
 
   it 'should not login a user with a bad password' do
     user = create(:user, email: 'bad_login@fake.com')
-    put '/login/.json', { :email => user.email, :password => 'BADfakePW' }.to_json
+    put '/users/login/.json', { :email => user.email, :password => 'BADfakePW' }.to_json
     last_response.body.should include('Invalid email or password.')
   end
 
   it 'should login a user and remember the user' do
     user = create(:user, email: 'remember_me@fake.com')
-    put '/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => true }.to_json
+    put '/users/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => true }.to_json
     last_response.body.should include(user.email)
     User.find(user.id).logged_in.should eq(true)
     User.find(user.id).remember_me_token.nil?.should eq(false)
@@ -99,7 +99,7 @@ describe 'User Service' do
 
   it 'should login a user and not remember the user' do
     user = create(:user, email: 'dont_remember_me@fake.com')
-    put '/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => false }.to_json
+    put '/users/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => false }.to_json
     last_response.body.should include(user.email)
     User.find(user.id).logged_in.should eq(true)
     User.find(user.id).remember_me_token.nil?.should eq(true)
@@ -107,22 +107,22 @@ describe 'User Service' do
 
   it 'should return the user associated with the token' do
     user = create(:user, email: 'dont_remember_me@fake.com')
-    put '/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => true }.to_json
+    put '/users/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => true }.to_json
     last_response.body.should include(user.email)
     
-    get "/remember_me/#{User.find(user.id).remember_me_token}.json"
+    get "/users/remember_me/#{User.find(user.id).remember_me_token}.json"
     last_response.body.should include(user.email)
     User.find(user.id).logged_in.should eq(true)
   end
 
   it 'should log out a user' do
     user = create(:user, email: 'remember_me@fake.com')
-    put '/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => true }.to_json
+    put '/users/login/.json', { :email => user.email, :password => 'fakePW', :remember_me => true }.to_json
     last_response.body.should include(user.email)
     User.find(user.id).logged_in.should eq(true)
     User.find(user.id).remember_me_token.nil?.should eq(false)
     
-    put "/logout/#{user.id}.json"
+    put "/users/logout/#{user.id}.json"
     expected = { :id => user.id, :logged_in => false }.to_json
     last_response.body.should eq(expected)
     User.find(user.id).logged_in.should eq(false)
@@ -131,7 +131,7 @@ describe 'User Service' do
 
   it 'should activate a user' do
     user = create(:user, email: 'active_user@fake.com', active: false)
-    put "/activate/#{user.activation_code}.json"
+    put "/users/activate/#{user.activation_code}.json"
     last_response.body.should include(user.email)
     User.find(user.id).active.should eq(true)
     User.find(user.id).logged_in.should eq(true)
@@ -139,16 +139,16 @@ describe 'User Service' do
 
   it 'should return a reset password token' do
     user = create(:user, email: 'reset_token@fake.com')
-    post '/reset_password/.json', { :email => user.email }.to_json
+    post '/users/reset_password/.json', { :email => user.email }.to_json
     last_response.body.should include('reset_token')
     User.find(user.id).reset_token.nil?.should eq(false)
   end
 
   it 'should return the user' do
     user = create(:user, email: 'reset_pw@fake.com')
-    post '/reset_password/.json', { :email => user.email }.to_json
+    post '/users/reset_password/.json', { :email => user.email }.to_json
 
-    put '/reset_password/.json', {
+    put '/users/reset_password/.json', {
                                   :reset_token => User.find(user.id).reset_token,
                                   :password => 'newPW',
                                   :password_confirmation => 'newPW'

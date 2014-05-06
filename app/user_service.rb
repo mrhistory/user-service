@@ -57,12 +57,12 @@ delete '/users/:id.json' do
   end
 end
 
-get '/logged_in/:id.json' do
+get '/users/logged_in/:id.json' do
   user = User.find(params[:id])
   { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
 end
 
-put '/login/.json' do
+put '/users/login/.json' do
   params = json_params
   user = User.authenticate(params['email'], params['password'], params['remember_me'] ||= false)
   if user.nil?
@@ -74,7 +74,7 @@ put '/login/.json' do
   end
 end
 
-get '/remember_me/:token.json' do
+get '/users/remember_me/:token.json' do
   user = User.where(:remember_me_token => params[:token]).first
   if user.nil?
     halt 500, { :error => 'No user associated with token.' }.to_json
@@ -83,7 +83,7 @@ get '/remember_me/:token.json' do
   end
 end
 
-put '/logout/:id.json' do
+put '/users/logout/:id.json' do
   user = User.find(params[:id])
   if user.logout!
     { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
@@ -92,7 +92,7 @@ put '/logout/:id.json' do
   end
 end
 
-put '/activate/:code.json' do
+put '/users/activate/:code.json' do
   user = User.where(:activation_code => params[:code]).first
   if user.nil?
     halt 500, { :error => 'No user associated with that activation code.' }.to_json
@@ -105,7 +105,7 @@ put '/activate/:code.json' do
   end
 end
 
-post '/reset_password/.json' do
+post '/users/reset_password/.json' do
   params = json_params
   user = User.where(:email => params['email']).first
   if user.nil?
@@ -120,7 +120,7 @@ post '/reset_password/.json' do
   end
 end
 
-put '/reset_password/.json' do
+put '/users/reset_password/.json' do
   params = json_params
   user = User.where(:reset_token => params['reset_token']).first
   if user.nil?
