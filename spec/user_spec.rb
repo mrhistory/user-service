@@ -131,7 +131,7 @@ describe 'User Service' do
 
   it 'should activate a user' do
     user = create(:user, email: 'active_user@fake.com', active: false)
-    put "/users/activate/#{user.activation_code}.json"
+    put "/users/activate/.json", { :activation_code => user.activation_code }.to_json
     last_response.body.should include(user.email)
     User.find(user.id).active.should eq(true)
     User.find(user.id).logged_in.should eq(true)

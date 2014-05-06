@@ -64,7 +64,7 @@ end
 
 put '/users/login/.json' do
   params = json_params
-  user = User.authenticate(params['email'], params['password'], params['remember_me'] ||= false)
+  user = User.authenticate(params[:email], params[:password], params[:remember_me] ||= false)
   if user.nil?
     halt 500, { :error => 'Invalid email or password.' }.to_json
   elsif !user.active?
@@ -92,8 +92,8 @@ put '/users/logout/:id.json' do
   end
 end
 
-put '/users/activate/:code.json' do
-  user = User.where(:activation_code => params[:code]).first
+put '/users/activate/.json' do
+  user = User.where(:activation_code => json_params[:activation_code]).first
   if user.nil?
     halt 500, { :error => 'No user associated with that activation code.' }.to_json
   else
@@ -107,7 +107,7 @@ end
 
 post '/users/reset_password/.json' do
   params = json_params
-  user = User.where(:email => params['email']).first
+  user = User.where(:email => params[:email]).first
   if user.nil?
     halt 500, { :error => 'No user associated with that email address.' }.to_json
   else
@@ -122,12 +122,12 @@ end
 
 put '/users/reset_password/.json' do
   params = json_params
-  user = User.where(:reset_token => params['reset_token']).first
+  user = User.where(:reset_token => params[:reset_token]).first
   if user.nil?
     halt 500, { :error => 'No user associated with that reset token.' }.to_json
   else
-    user.password = params['password']
-    user.password_confirmation = params['password_confirmation']
+    user.password = params[:password]
+    user.password_confirmation = params[:password_confirmation]
     user.reset_token = nil
     user.logged_in = true
     if user.save!
@@ -141,5 +141,5 @@ end
 private
 
 def json_params
-  JSON.parse(request.env['rack.input'].read)
+  JSON.parse(request.env['rack.input'].read, symbolize_names: true)
 end
