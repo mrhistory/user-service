@@ -83,8 +83,8 @@ get '/users/remember_me/:token.json' do
   end
 end
 
-put '/users/logout/:id.json' do
-  user = User.find(params[:id])
+put '/users/logout/.json' do
+  user = User.find(json_params[:id])
   if user.logout!
     { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
   else

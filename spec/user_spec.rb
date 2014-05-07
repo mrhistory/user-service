@@ -122,7 +122,7 @@ describe 'User Service' do
     User.find(user.id).logged_in.should eq(true)
     User.find(user.id).remember_me_token.nil?.should eq(false)
     
-    put "/users/logout/#{user.id}.json"
+    put "/users/logout/.json", { :id => user.id }.to_json
     expected = { :id => user.id, :logged_in => false }.to_json
     last_response.body.should eq(expected)
     User.find(user.id).logged_in.should eq(false)
