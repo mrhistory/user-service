@@ -23,123 +23,171 @@ get '/' do
 end
 
 get '/users/.json' do
-  User.all.to_json
+  begin
+    User.all.to_json
+  rescue Exception => e
+    halt 500, e.message
+  end
 end
 
 post '/users/.json' do
-  user = User.new(json_params)
-  if user.save
-    user.safe_json
-  else
-    halt 500, user.errors[0].to_json
+  begin
+    user = User.new(json_params)
+    if user.save
+      user.safe_json
+    else
+      halt 500, user.errors[:base]
+    end
+  rescue Exception => e
+    halt 500, e.message
   end
 end
 
 get '/users/:id.json' do
-  user = User.find(params[:id])
-  if user.nil?
-    halt 500, 'User not found.'
-  else
-    user.safe_json
+  begin
+    user = User.find(params[:id])
+    if user.nil?
+      raise Exception, 'User not found.'
+    else
+      user.safe_json
+    end
+  rescue Exception => e
+    halt 500, e.message
   end
 end
 
 put '/users/:id.json' do
-  user = User.find(params[:id])
-  if user.update_attributes!(json_params)
-    user.safe_json
-  else
-    halt 500, user.errors[0].to_json
+  begin
+    user = User.find(params[:id])
+    if user.update_attributes!(json_params)
+      user.safe_json
+    else
+      halt 500, user.errors[:base]
+    end
+  rescue Exception => e
+    halt 500, e.message
   end
 end
 
 delete '/users/:id.json' do
-  user = User.find(params[:id])
-  if user.destroy
-    { :id => user.id, :deleted => true }.to_json
-  else
-    halt 500, user.errors[0].to_json
+  begin
+    user = User.find(params[:id])
+    if user.destroy
+      { :id => user.id, :deleted => true }.to_json
+    else
+      halt 500, user.errors[:base]
+    end
+  rescue Exception => e
+    halt 500, e.message
   end
 end
 
 get '/users/logged_in/:id.json' do
-  user = User.find(params[:id])
-  { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
+  begin
+    user = User.find(params[:id])
+    { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
+  rescue Exception => e
+    halt 500, e.message
+  end
 end
 
 put '/users/login/.json' do
-  params = json_params
-  user = User.authenticate(params[:email], params[:password], params[:remember_me] ||= false)
-  if user.nil?
-    halt 500, 'Invalid email or password.'
-  elsif !user.active?
-    halt 500, 'User is inactive.'
-  else
-    user.safe_json
+  begin
+    params = json_params
+    user = User.authenticate(params[:email], params[:password], params[:remember_me] ||= false)
+    if user.nil?
+      raise Exception, 'Invalid email or password.'
+    elsif !user.active?
+      raise Exception, 'User is inactive.'
+    else
+      user.safe_json
+    end
+  rescue Exception => e
+    halt 500, e.message
   end
 end
 
 get '/users/remember_me/:token.json' do
-  user = User.where(:remember_me_token => params[:token]).first
-  if user.nil?
-    halt 500, 'No user associated with token.'
-  else
-    user.safe_json
+  begin
+    user = User.where(:remember_me_token => params[:token]).first
+    if user.nil?
+      raise Exception, 'No user associated with token.'
+    else
+      user.safe_json
+    end
+  rescue Exception => e
+    halt 500, e.message
   end
 end
 
 put '/users/logout/.json' do
-  user = User.find(json_params[:id])
-  if user.logout!
-    { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
-  else
-    halt 500, user.errors[0].to_json
+  begin
+    user = User.find(json_params[:id])
+    if user.logout!
+      { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
+    else
+      halt 500, user.errors[:base]
+    end
+  rescue Exception => e
+    halt 500, e.message
   end
 end
 
 put '/users/activate/.json' do
-  user = User.where(:activation_code => json_params[:activation_code]).first
-  if user.nil?
-    halt 500, 'No user associated with that activation code.'
-  else
-    if user.activate!
-      user.safe_json
+  begin
+    user = User.where(:activation_code => json_params[:activation_code]).first
+    if user.nil?
+      raise Exception, 'No user associated with that activation code.'
     else
-      halt 500, user.errors[0].to_json
+      if user.activate!
+        user.safe_json
+      else
+        halt 500, user.errors[:base]
+      end
     end
+  rescue Exception => e
+    halt 500, e.message
   end
 end
 
 post '/users/reset_password/.json' do
-  params = json_params
-  user = User.where(:email => params[:email]).first
-  if user.nil?
-    halt 500, 'No user associated with that email address.'
-  else
-    user.make_reset_token
-    if user.save!
-      { :reset_token => user.reset_token }.to_json
+  begin
+    params = json_params
+    user = User.where(:email => params[:email]).first
+    if user.nil?
+      raise Exception, 'No user associated with that email address.'
     else
-      halt 500, user.errors[0].to_json
+      user.make_reset_token
+      if user.save!
+        { :reset_token => user.reset_token }.to_json
+      else
+        halt 500, user.errors[:base]
+      end
     end
+  rescue Exception => e
+    halt 500, e.message
   end
 end
 
 put '/users/reset_password/.json' do
-  params = json_params
-  user = User.where(:reset_token => params[:reset_token]).first
-  if user.nil?
-    halt 500, 'No user associated with that reset token.'
-  else
-    user.password = params[:password]
-    user.password_confirmation = params[:password_confirmation]
-    user.reset_token = nil
-    user.logged_in = true
-    if user.save!
-      user.safe_json
+  begin
+    params = json_params
+    user = User.where(:reset_token => params[:reset_token]).first
+    if user.nil?
+      raise Exception, 'No user associated with that reset token.'
     else
-      halt 500, user.errors[0].to_json
+      user.password = params[:password]
+      user.password_confirmation = params[:password_confirmation]
+      user.reset_token = nil
+      user.logged_in = true
+      if user.save!
+        user.safe_json
+      else
+        halt 500, user.errors[:base]
+      end
     end
+  rescue Exception => e
+    halt 500, e.message
   end
 end
 
