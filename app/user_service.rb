@@ -53,7 +53,7 @@ delete '/users/:id.json' do
   if user.destroy
     { :id => user.id, :deleted => true }.to_json
   else
-    halt 500, user.errors.to_json
+    halt 500, user.errors[0].to_json
   end
 end
 
@@ -66,9 +66,9 @@ put '/users/login/.json' do
   params = json_params
   user = User.authenticate(params[:email], params[:password], params[:remember_me] ||= false)
   if user.nil?
-    halt 500, { :error => 'Invalid email or password.' }.to_json
+    halt 500, 'Invalid email or password.'
   elsif !user.active?
-    halt 500, { :error => 'User is inactive.' }.to_json
+    halt 500, 'User is inactive.'
   else
     user.safe_json
   end
@@ -77,7 +77,7 @@ end
 get '/users/remember_me/:token.json' do
   user = User.where(:remember_me_token => params[:token]).first
   if user.nil?
-    halt 500, { :error => 'No user associated with token.' }.to_json
+    halt 500, 'No user associated with token.'
   else
     user.safe_json
   end
@@ -88,19 +88,19 @@ put '/users/logout/.json' do
   if user.logout!
     { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
   else
-    halt 500, user.errors.to_json
+    halt 500, user.errors[0].to_json
   end
 end
 
 put '/users/activate/.json' do
   user = User.where(:activation_code => json_params[:activation_code]).first
   if user.nil?
-    halt 500, { :error => 'No user associated with that activation code.' }.to_json
+    halt 500, 'No user associated with that activation code.'
   else
     if user.activate!
       user.safe_json
     else
-      halt 500, user.errors.to_json
+      halt 500, user.errors[0].to_json
     end
   end
 end
@@ -109,13 +109,13 @@ post '/users/reset_password/.json' do
   params = json_params
   user = User.where(:email => params[:email]).first
   if user.nil?
-    halt 500, { :error => 'No user associated with that email address.' }.to_json
+    halt 500, 'No user associated with that email address.'
   else
     user.make_reset_token
     if user.save!
       { :reset_token => user.reset_token }.to_json
     else
-      halt 500, user.errors.to_json
+      halt 500, user.errors[0].to_json
     end
   end
 end
@@ -124,7 +124,7 @@ put '/users/reset_password/.json' do
   params = json_params
   user = User.where(:reset_token => params[:reset_token]).first
   if user.nil?
-    halt 500, { :error => 'No user associated with that reset token.' }.to_json
+    halt 500, 'No user associated with that reset token.'
   else
     user.password = params[:password]
     user.password_confirmation = params[:password_confirmation]
@@ -133,7 +133,7 @@ put '/users/reset_password/.json' do
     if user.save!
       user.safe_json
     else
-      halt 500, user.errors.to_json
+      halt 500, user.errors[0].to_json
     end
   end
 end
