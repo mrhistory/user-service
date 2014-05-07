@@ -31,12 +31,17 @@ post '/users/.json' do
   if user.save
     user.safe_json
   else
-    halt 500, user.errors.to_json
+    halt 500, user.errors[0].to_json
   end
 end
 
 get '/users/:id.json' do
-  User.find(params[:id]).safe_json
+  user = User.find(params[:id])
+  if user.nil?
+    halt 500, 'User not found.'
+  else
+    user.safe_json
+  end
 end
 
 put '/users/:id.json' do
@@ -44,7 +49,7 @@ put '/users/:id.json' do
   if user.update_attributes!(json_params)
     user.safe_json
   else
-    halt 500, user.errors.to_json
+    halt 500, user.errors[0].to_json
   end
 end
 
