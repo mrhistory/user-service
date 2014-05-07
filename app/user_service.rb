@@ -36,7 +36,7 @@ post '/users/.json' do
     if user.save
       user.safe_json
     else
-      halt 500, user.errors[:base]
+      halt 500, user.errors.full_messages[0]
     end
   rescue Exception => e
     halt 500, e.message
@@ -62,7 +62,7 @@ put '/users/:id.json' do
     if user.update_attributes!(json_params)
       user.safe_json
     else
-      halt 500, user.errors[:base]
+      halt 500, user.errors.full_messages[0]
     end
   rescue Exception => e
     halt 500, e.message
@@ -75,7 +75,7 @@ delete '/users/:id.json' do
     if user.destroy
       { :id => user.id, :deleted => true }.to_json
     else
-      halt 500, user.errors[:base]
+      halt 500, user.errors.full_messages[0]
     end
   rescue Exception => e
     halt 500, e.message
@@ -126,7 +126,7 @@ put '/users/logout/.json' do
     if user.logout!
       { :id => user.id, :logged_in => user.logged_in ||= false }.to_json
     else
-      halt 500, user.errors[:base]
+      halt 500, user.errors.full_messages[0]
     end
   rescue Exception => e
     halt 500, e.message
@@ -142,7 +142,7 @@ put '/users/activate/.json' do
       if user.activate!
         user.safe_json
       else
-        halt 500, user.errors[:base]
+        halt 500, user.errors.full_messages[0]
       end
     end
   rescue Exception => e
@@ -161,7 +161,7 @@ post '/users/reset_password/.json' do
       if user.save!
         { :reset_token => user.reset_token }.to_json
       else
-        halt 500, user.errors[:base]
+        halt 500, user.errors.full_messages[0]
       end
     end
   rescue Exception => e
@@ -183,7 +183,7 @@ put '/users/reset_password/.json' do
       if user.save!
         user.safe_json
       else
-        halt 500, user.errors[:base]
+        halt 500, user.errors.full_messages[0]
       end
     end
   rescue Exception => e

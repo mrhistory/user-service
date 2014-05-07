@@ -51,7 +51,7 @@ describe 'User Service' do
       :password_confirmation => 'fakePW'
     }
     post '/users/.json', user.to_json
-    last_response.body.should include('Organizations cannot be empty.')
+    last_response.body.should include('Organizations')
     User.where(email: user[:email]).exists?.should eq(false)
   end
 
