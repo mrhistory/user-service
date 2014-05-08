@@ -1,5 +1,6 @@
 require 'spec_helper'
 require './app/user_service'
+require 'json'
 
 describe 'User Service' do
   before(:each) do
@@ -77,10 +78,18 @@ describe 'User Service' do
   end
 
   it 'should login a user' do
-    user = create(:user, email: 'login@fake.com')
-    put '/users/login/.json', { :email => user.email, :password => 'fakePW' }.to_json
-    last_response.body.should include(user.email)
-    User.find(user.id).logged_in.should eq(true)
+    user = {
+      :email => 'new_user@fake.com',
+      :password => 'fakePW',
+      :password_confirmation => 'fakePW',
+      :organizations => [1]
+    }
+    post '/users/.json', user.to_json
+    json = JSON.parse(last_response.body, symbolize_names: true)
+    put "/users/activate/.json", { :activation_code => json[:activation_code] }.to_json
+    put '/users/login/.json', { :email => user[:email], :password => 'fakePW' }.to_json
+    last_response.body.should include(user[:email])
+    User.find(json[:_id]).logged_in.should eq(true)
   end
 
   it 'should not login a user with a bad password' do
